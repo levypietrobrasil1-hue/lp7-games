@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LP'7 BLAST — Criar conta</title>
+<style>
+  :root{
+    --bg:#0a0205; --red:#ff2a3d; --red2:#c4001a; --white:#fff;
+    --muted:rgba(255,255,255,.6); --line:rgba(255,255,255,.14);
+    --ok:#3ddc97; --err:#ff6b7a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    background:var(--bg); color:var(--white);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px 16px; overflow-x:hidden; position:relative;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(600px 400px at 15% 10%, rgba(255,42,61,.28), transparent 60%),
+      radial-gradient(500px 400px at 90% 90%, rgba(196,0,26,.3), transparent 60%);
+  }
+  /* blocos flutuantes decorativos */
+  .blocks{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .blocks i{
+    position:absolute; width:34px;height:34px; border-radius:7px;
+    background:linear-gradient(145deg,#fff 0%,var(--red) 40%,var(--red2) 100%);
+    opacity:.14; animation:float 14s linear infinite;
+  }
+  @keyframes float{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-15vh) rotate(360deg)}}
+
+  .card{
+    position:relative; z-index:1; width:100%; max-width:420px;
+    background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+    border:1px solid var(--line); border-radius:24px;
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    padding:28px 22px 24px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .brand{text-align:center;margin-bottom:20px}
+  .brand small{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted);margin-bottom:6px}
+  .logo{
+    font-size:38px;font-weight:900;line-height:.95;letter-spacing:.02em;
+    background:linear-gradient(180deg,#fff 0%,#ffb3bb 35%,var(--red) 60%,var(--red2) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 14px rgba(255,42,61,.45));
+  }
+  .tag{margin-top:8px;font-size:12px;color:var(--muted)}
+
+  .tabs{display:grid;grid-template-columns:1fr 1fr;background:rgba(0,0,0,.35);border-radius:14px;padding:4px;margin-bottom:18px}
+  .tabs button{
+    border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:14px;
+    padding:11px;border-radius:11px;cursor:pointer;transition:.2s
+  }
+  .tabs button.on{color:#fff;background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 4px 16px rgba(255,42,61,.4)}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.03em}
+  .wrap{position:relative}
+  .wrap svg.ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;opacity:.6;pointer-events:none}
+  input{
+    width:100%;font:inherit;font-size:16px;color:#fff;background:rgba(0,0,0,.4);
+    border:1.5px solid var(--line);border-radius:13px;padding:14px 14px 14px 43px;outline:none;transition:.2s
+  }
+  input::placeholder{color:rgba(255,255,255,.3)}
+  input:focus{border-color:var(--red);box-shadow:0 0 0 4px rgba(255,42,61,.18)}
+  .field.bad input{border-color:var(--err)}
+  .field.good input{border-color:rgba(61,220,151,.6)}
+  .msg{font-size:11.5px;color:var(--err);margin-top:5px;min-height:0;display:none}
+  .field.bad .msg{display:block}
+  .eye{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
+    color:var(--muted);cursor:pointer;padding:9px;font-size:12px;font-weight:700
+  }
+  .strength{display:flex;gap:4px;margin-top:8px}
+  .strength span{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.12);transition:.25s}
+  .strength-t{font-size:11px;color:var(--muted);margin-top:5px}
+
+  .terms{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--muted);margin:4px 0 16px;line-height:1.4}
+  .terms input{width:18px;height:18px;padding:0;margin-top:1px;accent-color:var(--red);flex:none}
+
+  .go{
+    width:100%;border:0;font:inherit;font-weight:800;font-size:16px;letter-spacing:.04em;color:#fff;
+    padding:16px;border-radius:14px;cursor:pointer;
+    background:linear-gradient(135deg,#ff4a5c 0%,var(--red) 45%,var(--red2) 100%);
+    box-shadow:0 8px 26px rgba(255,42,61,.45), inset 0 1px 0 rgba(255,255,255,.35);
+    transition:transform .15s, filter .2s;
+  }
+  .go:active{transform:scale(.98)}
+  .go:disabled{filter:grayscale(.6) brightness(.7);cursor:not-allowed}
+  .safe{margin-top:14px;text-align:center;font-size:11px;color:var(--muted)}
+  .hide{display:none}
+
+  .ok{text-align:center;padding:14px 4px}
+  .ok .big{font-size:54px}
+  .ok h2{margin:8px 0 6px;font-size:22px}
+  .ok p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:18px}
+</style>
+</head>
+<body>
+<div class="blocks" id="blocks"></div>
+
+<main class="card">
+  <div class="brand">
+    <small>LP'7 STUDIO APRESENTA</small>
+    <div class="logo">LP'7<br>BLAST</div>
+    <p class="tag">Encaixe os blocos. Limpe as linhas. Domine o tabuleiro.</p>
+  </div>
+
+  <div id="formArea">
+    <div class="tabs">
+      <button type="button" id="tabSign" class="on">Criar conta</button>
+      <button type="button" id="tabLogin">Entrar</button>
+    </div>
+
+    <form id="signForm" novalidate autocomplete="on">
+      <div class="field" data-f="email">
+        <label for="email">GMAIL</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="seunome@gmail.com">
+        </div>
+        <div class="msg"></div>
+      </div>
+
+      <div class="field" data-f="zap">
+        <label for="zap">WHATSAPP</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+          <input id="zap" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(85) 99999-9999" maxlength="15">
+        </div>
+        <div class="msg"></div>
+      </div>
+
+      <div class="field" data-f="cpf">
+        <label for="cpf">CPF</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.5 17c.6-2 2-3 3.5-3s2.9 1 3.5 3M15 9h4M15 13h4"/></svg>
+          <input id="cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14">
+        </div>
+        <div class="msg"></div>
+      </div>
+
+      <div class="field" data-f="pass">
+        <label for="pass">SENHA</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <input id="pass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+          <button type="button" class="eye" data-eye="pass">VER</button>
+        </div>
+        <div class="strength" id="str"><span></span><span></span><span></span><span></span></div>
+        <div class="strength-t" id="strT">Use letras, números e símbolos</div>
+        <div class="msg"></div>
+      </div>
+
+      <div class="field" data-f="pass2">
+        <label for="pass2">CONFIRMAR SENHA</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <input id="pass2" type="password" autocomplete="new-password" placeholder="Repita a senha">
+          <button type="button" class="eye" data-eye="pass2">VER</button>
+        </div>
+        <div class="msg"></div>
+      </div>
+
+      <label class="terms"><input type="checkbox" id="terms"> <span>Li e aceito os termos de uso e a política de privacidade (LGPD) do LP'7 STUDIO.</span></label>
+      <button class="go" type="submit">CRIAR MINHA CONTA</button>
+    </form>
+
+    <form id="loginForm" class="hide" novalidate autocomplete="on">
+      <div class="field" data-f="lemail">
+        <label for="lemail">GMAIL</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <input id="lemail" type="email" autocomplete="username" placeholder="seunome@gmail.com">
+        </div>
+        <div class="msg"></div>
+      </div>
+      <div class="field" data-f="lpass">
+        <label for="lpass">SENHA</label>
+        <div class="wrap">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <input id="lpass" type="password" autocomplete="current-password" placeholder="Sua senha">
+          <button type="button" class="eye" data-eye="lpass">VER</button>
+        </div>
+        <div class="msg"></div>
+      </div>
+      <button class="go" type="submit" style="margin-top:6px">ENTRAR E JOGAR</button>
+    </form>
+
+    <p class="safe">🔒 Seus dados são protegidos. A senha nunca é guardada em texto puro.</p>
+  </div>
+
+  <div id="okArea" class="ok hide">
+    <div class="big">🎮</div>
+    <h2 id="okTitle">Conta criada!</h2>
+    <p id="okText"></p>
+    <button class="go" id="playBtn" type="button">JOGAR AGORA</button>
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  // blocos decorativos
+  const bl = $('#blocks');
+  for(let i=0;i<14;i++){
+    const b=document.createElement('i');
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(10+Math.random()*14)+'s';
+    b.style.animationDelay=(-Math.random()*20)+'s';
+    b.style.transform='scale('+(.6+Math.random()*1.1)+')';
+    bl.appendChild(b);
+  }
+
+  // abas
+  function tab(sign){
+    $('#tabSign').classList.toggle('on',sign);
+    $('#tabLogin').classList.toggle('on',!sign);
+    $('#signForm').classList.toggle('hide',!sign);
+    $('#loginForm').classList.toggle('hide',sign);
+  }
+  $('#tabSign').onclick=()=>tab(true);
+  $('#tabLogin').onclick=()=>tab(false);
+
+  // ver/ocultar senha
+  $$('.eye').forEach(b=>b.onclick=()=>{
+    const i=document.getElementById(b.dataset.eye);
+    const show=i.type==='password';
+    i.type=show?'text':'password';
+    b.textContent=show?'OCULTAR':'VER';
+  });
+
+  // máscaras
+  const digits = s => s.replace(/\D/g,'');
+  $('#cpf').addEventListener('input',e=>{
+    let v=digits(e.target.value).slice(0,11);
+    v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+    e.target.value=v;
+  });
+  $('#zap').addEventListener('input',e=>{
+    let v=digits(e.target.value).slice(0,11);
+    if(v.length>6) v=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if(v.length>2) v=`(${v.slice(0,2)}) ${v.slice(2)}`;
+    else if(v.length>0) v=`(${v}`;
+    e.target.value=v;
+  });
+
+  // validações
+  function validCPF(c){
+    c=digits(c);
+    if(c.length!==11||/^(\d)\1+$/.test(c)) return false;
+    for(let t=9;t<11;t++){
+      let s=0;
+      for(let i=0;i<t;i++) s+=c[i]*(t+1-i);
+      let d=(s*10)%11%10;
+      if(d!=c[t]) return false;
+    }
+    return true;
+  }
+  const validGmail = e => /^[a-z0-9._%+-]+@gmail\.com$/i.test(e.trim());
+  const validZap = z => { const d=digits(z); return d.length===11 && d[2]==='9'; };
+
+  function setState(name,err){
+    const f=document.querySelector(`[data-f="${name}"]`);
+    f.classList.toggle('bad',!!err);
+    f.classList.toggle('good',!err);
+    f.querySelector('.msg').textContent=err||'';
+    return !err;
+  }
+
+  // força da senha
+  function score(p){
+    let s=0;
+    if(p.length>=8) s++;
+    if(/[a-z]/.test(p)&&/[A-Z]/.test(p)) s++;
+    if(/\d/.test(p)) s++;
+    if(/[^A-Za-z0-9]/.test(p)&&p.length>=8) s++;
+    return s;
+  }
+  $('#pass').addEventListener('input',e=>{
+    const s=score(e.target.value);
+    const cols=['#ff6b7a','#ff9f43','#ffd166','#3ddc97'];
+    const names=['Muito fraca','Fraca','Boa','Forte'];
+    $$('#str span').forEach((el,i)=>el.style.background=i<s?cols[s-1]:'rgba(255,255,255,.12)');
+    $('#strT').textContent=e.target.value?names[Math.max(s-1,0)]:'Use letras, números e símbolos';
+  });
+
+  // hash seguro (PBKDF2 + salt) — a senha nunca é guardada em texto puro
+  async function hash(pw,saltHex){
+    const enc=new TextEncoder();
+    const salt=saltHex?Uint8Array.from(saltHex.match(/.{2}/g).map(h=>parseInt(h,16))):crypto.getRandomValues(new Uint8Array(16));
+    const key=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+    const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},key,256);
+    const hex=a=>[...new Uint8Array(a)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    return {salt:hex(salt),hash:hex(bits)};
+  }
+
+  // armazenamento (demonstração local; em produção, trocar por chamada ao servidor)
+  const KEY='lp7_users';
+  const getUsers=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+  const saveUsers=u=>{try{localStorage.setItem(KEY,JSON.stringify(u))}catch(e){}};
+
+  function done(title,text){
+    $('#formArea').classList.add('hide');
+    $('#okArea').classList.remove('hide');
+    $('#okTitle').textContent=title;
+    $('#okText').textContent=text;
+  }
+  $('#playBtn').onclick=()=>{ window.location.href='block-blast.html'; };
+
+  // cadastro
+  $('#signForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=$('#email').value.trim().toLowerCase();
+    const zap=$('#zap').value, cpf=$('#cpf').value;
+    const p=$('#pass').value, p2=$('#pass2').value;
+
+    const r=[
+      setState('email', !email?'Informe seu Gmail.':!validGmail(email)?'Use um endereço @gmail.com válido.':''),
+      setState('zap', !validZap(zap)?'Informe um WhatsApp válido com DDD.':''),
+      setState('cpf', !validCPF(cpf)?'CPF inválido.':''),
+      setState('pass', p.length<8?'A senha precisa ter no mínimo 8 caracteres.':score(p)<2?'Senha fraca: misture letras e números.':''),
+      setState('pass2', p!==p2?'As senhas não coincidem.':'')
+    ];
+    if(r.includes(false)) return;
+    if(!$('#terms').checked){ alert('Aceite os termos para continuar.'); return; }
+
+    const users=getUsers();
+    if(users[email]){ setState('email','Este Gmail já tem uma conta. Use "Entrar".'); return; }
+
+    const btn=e.submitter||$('#signForm .go'); btn.disabled=true; btn.textContent='CRIANDO...';
+    const h=await hash(p);
+    users[email]={zap:digits(zap),cpf:digits(cpf),salt:h.salt,hash:h.hash,created:Date.now()};
+    saveUsers(users);
+    done('Conta criada!','Bem-vindo ao LP\'7 BLAST, '+email+'. Seus recordes agora ficam ligados à sua conta.');
+  });
+
+  // login
+  $('#loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=$('#lemail').value.trim().toLowerCase(), p=$('#lpass').value;
+    const a=setState('lemail',!validGmail(email)?'Informe um Gmail válido.':'');
+    const b=setState('lpass',!p?'Informe sua senha.':'');
+    if(!a||!b) return;
+    const u=getUsers()[email];
+    const h=u?await hash(p,u.salt):null;
+    if(!u||h.hash!==u.hash){ setState('lpass','Gmail ou senha incorretos.'); return; }
+    done('Login feito!','Que bom te ver de volta. Bora bater seu recorde?');
+  });
+})();
+</script>
+</body>
+</html>
